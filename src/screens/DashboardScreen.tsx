@@ -183,7 +183,7 @@ export function DashboardScreen({ navigation }: DashboardScreenProps) {
                     style={styles.comingSoon}
                     testID={`tile-${tile.key}-coming-soon`}
                   >
-                    Coming soon
+                    COMING SOON
                   </Text>
                 ) : null}
               </Pressable>
@@ -314,8 +314,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   comingSoon: {
-    ...typography.text12Alt,
-    color: colors.fg,
+    ...typography.text9,
+    color: colors.muted,
     textAlign: 'center',
   },
 });
