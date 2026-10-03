@@ -15,22 +15,46 @@ function renderShell() {
   );
 }
 
+async function pressTab(testID: string) {
+  await fireEvent.press(screen.getByTestId(testID));
+}
+
+/**
+ * Structure-only tests for the app shell: the tab bar, the screens it reaches
+ * and the root-stack routes. They never assert a screen's placeholder content -
+ * each screen ticket owns its own copy.
+ */
 describe('app shell', () => {
+  it('renders exactly the three contract tabs, in the contract order', async () => {
+    await renderShell();
+
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.map((tab) => tab.props.testID)).toEqual([
+      'tab-Dashboard',
+      'tab-MoneyManagement',
+      'tab-TimeManagement',
+    ]);
+  });
+
   it('starts on the Dashboard screen with the Dashboard tab active', async () => {
     await renderShell();
 
     expect(screen.getByTestId('screen-Dashboard')).toBeTruthy();
     expect(screen.getByTestId('tab-Dashboard').props.accessibilityState).toMatchObject({
       selected: true,
-      disabled: false,
     });
+    expect(
+      screen.getByTestId('tab-MoneyManagement').props.accessibilityState,
+    ).toMatchObject({ selected: false });
+    expect(
+      screen.getByTestId('tab-TimeManagement').props.accessibilityState,
+    ).toMatchObject({ selected: false });
   });
 
-  it('switches to Money Management when its tab is pressed and marks it active', async () => {
+  it('switches to each tab, reaches its screen and marks it active', async () => {
     await renderShell();
 
-    await fireEvent.press(screen.getByTestId('tab-MoneyManagement'));
-
+    await pressTab('tab-MoneyManagement');
     expect(screen.getByTestId('screen-MoneyManagement')).toBeTruthy();
     expect(
       screen.getByTestId('tab-MoneyManagement').props.accessibilityState,
@@ -38,32 +62,21 @@ describe('app shell', () => {
     expect(screen.getByTestId('tab-Dashboard').props.accessibilityState).toMatchObject({
       selected: false,
     });
-  });
 
-  it('switches to Time Management and back to Dashboard', async () => {
-    await renderShell();
-
-    await fireEvent.press(screen.getByTestId('tab-TimeManagement'));
+    await pressTab('tab-TimeManagement');
     expect(screen.getByTestId('screen-TimeManagement')).toBeTruthy();
+    expect(
+      screen.getByTestId('tab-TimeManagement').props.accessibilityState,
+    ).toMatchObject({ selected: true });
 
-    await fireEvent.press(screen.getByTestId('tab-Dashboard'));
+    await pressTab('tab-Dashboard');
     expect(screen.getByTestId('screen-Dashboard')).toBeTruthy();
     expect(screen.getByTestId('tab-Dashboard').props.accessibilityState).toMatchObject({
       selected: true,
     });
   });
 
-  it('keeps the disabled Liked tab unavailable', async () => {
-    await renderShell();
-
-    const liked = screen.getByTestId('tab-Liked');
-    expect(liked.props.accessibilityState).toMatchObject({
-      selected: false,
-      disabled: true,
-    });
-  });
-
-  it('registers the Dashboard Menu and Dashboard Statistics screens', async () => {
+  it('registers the Dashboard Menu and Dashboard Statistics stack screens', async () => {
     await renderShell();
 
     await act(async () => {

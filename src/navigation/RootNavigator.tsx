@@ -9,7 +9,7 @@ import {
   createBottomTabNavigator,
   type BottomTabBarProps,
 } from '@react-navigation/bottom-tabs';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { MainTabParamList, RootStackParamList } from './types';
 import { DashboardScreen } from '../screens/DashboardScreen';
@@ -29,41 +29,35 @@ type TabItem = {
   /** Stable test id suffix, also used to reach a screen. */
   key: string;
   label: string;
-  /** Absent for a disabled item that does not map to a route yet. */
-  route?: keyof MainTabParamList;
+  route: keyof MainTabParamList;
   renderIcon: (color: string) => React.ReactNode;
-  disabled?: boolean;
 };
 
 /**
- * The four items the Figma bottom bar draws, in order. DESIGN.md maps
- * Home -> Dashboard, Products -> Money Management, Today -> Time Management
- * and keeps Liked disabled as "coming soon".
+ * The bottom bar connects exactly the three screens of this sprint, in the
+ * order the shared contract defines: Dashboard, Money Management, Time
+ * Management. There is no fourth entry - every item here has a screen behind
+ * it. Content without a screen is marked "coming soon" inside a screen, never
+ * added as an extra tab.
  */
 const TAB_ITEMS: TabItem[] = [
   {
     key: 'Dashboard',
-    label: 'Home',
+    label: 'Dashboard',
     route: 'Dashboard',
     renderIcon: (color) => <Ionicons name="home-outline" size={22} color={color} />,
   },
   {
     key: 'MoneyManagement',
-    label: 'Products',
+    label: 'Money Management',
     route: 'MoneyManagement',
-    renderIcon: (color) => <Ionicons name="cart-outline" size={20} color={color} />,
-  },
-  {
-    key: 'Liked',
-    label: 'Liked',
-    renderIcon: (color) => <Ionicons name="heart-outline" size={20} color={color} />,
-    disabled: true,
+    renderIcon: (color) => <Ionicons name="wallet-outline" size={22} color={color} />,
   },
   {
     key: 'TimeManagement',
-    label: 'Today',
+    label: 'Time Management',
     route: 'TimeManagement',
-    renderIcon: (color) => <Feather name="user-check" size={18} color={color} />,
+    renderIcon: (color) => <Ionicons name="calendar-outline" size={22} color={color} />,
   },
 ];
 
@@ -78,26 +72,18 @@ function BottomTabBar({ state, navigation }: BottomTabBarProps) {
     >
       <View style={styles.itemsRow}>
         {TAB_ITEMS.map((item) => {
-          const active = item.route !== undefined && item.route === activeRoute;
+          const active = item.route === activeRoute;
           const color = active ? colors.accent : colors.navInactive;
-
-          const onPress = () => {
-            if (item.disabled || !item.route) {
-              return;
-            }
-            navigation.navigate(item.route);
-          };
 
           return (
             <Pressable
               key={item.key}
               accessibilityRole="tab"
-              accessibilityState={{ selected: active, disabled: Boolean(item.disabled) }}
+              accessibilityState={{ selected: active }}
               accessibilityLabel={item.label}
-              disabled={Boolean(item.disabled)}
-              onPress={onPress}
+              onPress={() => navigation.navigate(item.route)}
               testID={`tab-${item.key}`}
-              style={[styles.item, item.disabled ? styles.itemDisabled : null]}
+              style={styles.item}
             >
               <View style={styles.iconBox}>{item.renderIcon(color)}</View>
               <Text style={[styles.label, { color }]} numberOfLines={1}>
@@ -166,9 +152,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     minHeight: 44,
-  },
-  itemDisabled: {
-    opacity: 0.45,
   },
   iconBox: {
     height: 22,

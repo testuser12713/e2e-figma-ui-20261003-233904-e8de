@@ -62,12 +62,11 @@ npm test
 ## Wie man die App benutzt
 
 Die App startet auf dem **Dashboard**. Die Navigation läuft über die Bottom-Tab-Bar
-am unteren Rand:
+am unteren Rand, die genau drei Bereiche verbindet:
 
-- **Home** → Dashboard
-- **Products** → Money Management
-- **Today** → Time Management
-- **Liked** → noch nicht verfügbar (sichtbar deaktiviert, „coming soon")
+- **Dashboard** → Dashboard
+- **Money Management** → Money Management
+- **Time Management** → Time Management
 
 Ein Tippen auf einen Tab wechselt sofort zum zugehörigen Screen und markiert den Tab
 als aktiv. Bereits besuchte Screens behalten ihren Zustand. Die Ansichten
@@ -77,7 +76,7 @@ als aktiv. Bereits besuchte Screens behalten ihren Zustand. Die Ansichten
 ## Funktionen
 
 - Dashboard-Screen als Startbildschirm mit aktiv markiertem Dashboard-Tab
-- Bottom-Tab-Bar mit Home, Products, Today und dem deaktivierten Liked-Eintrag
+- Bottom-Tab-Bar mit genau drei Tabs: Dashboard, Money Management, Time Management
 - Money Management: Ledger der Beispiel-Transaktionen, Filter nach Einnahmen/Ausgaben und Kontostand aus den Beispieldaten
 - Time Management: Terminliste mit Fortschrittsanzeige
 - Dashboard Menu und Dashboard Statistics als eigene Ansichten
