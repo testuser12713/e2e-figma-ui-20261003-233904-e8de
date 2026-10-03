@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, zIndex } from '../theme';
+import { colors, spacing, typography } from '../theme';
 
 export type DashboardMenuScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -22,9 +22,15 @@ type MenuEntry = {
 
 /**
  * The Figma frame draws the Dashboard Menu as a drawer over the Dashboard
- * screen: a dimmed backdrop on the right and a 294px white panel on the left.
- * The panel's green header carries the profile block and the back control, the
- * panel body carries the four entries.
+ * screen: a dimmed backdrop behind a 294px white panel that carries the green
+ * header (profile block plus back control) and the four entries.
+ *
+ * Layout note (AC-07): the back control and the profile block are laid out as
+ * SIBLINGS in one flex row inside the header, so neither can ever paint over or
+ * intercept the other's touches. The backdrop is a full-screen layer painted
+ * BEFORE the drawer, and the drawer paints on top of it - the Figma frame's own
+ * back-to-front order. No element between the back control and the screen root
+ * overlaps it, so its hit area is never covered by a sibling wrapper.
  *
  * "Statistics" is wired to the DashboardStats route. "Help", "Account Settings"
  * and "Logout" have no screen in this sprint, so they are visibly disabled and
@@ -103,45 +109,45 @@ export function DashboardMenuScreen({ navigation }: DashboardMenuScreenProps) {
 
   return (
     <View style={styles.screen} testID="screen-DashboardMenu" pointerEvents="box-none">
-      <View style={styles.row} pointerEvents="box-none">
-        <View style={styles.drawer} testID="dashboard-menu-drawer">
-          <View style={styles.header} pointerEvents="box-none">
-            <Pressable
-              testID="menu-back"
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              onPress={() => navigation.goBack()}
-              style={({ pressed }) => [
-                styles.backControl,
-                pressed ? styles.backControlPressed : null,
-              ]}
-            >
-              <Image
-                source={require('../../design/figma/assets/icon-13x13.png')}
-                style={styles.backIcon}
-              />
-            </Pressable>
+      {/* Painted first (behind): the dimmed backdrop covering the whole screen. */}
+      <View style={styles.backdrop} pointerEvents="auto" />
 
-            <View style={styles.profileRow} pointerEvents="box-none">
-              <Image
-                source={require('../../design/figma/assets/profile-image.png')}
-                style={styles.avatar}
-              />
-              <View style={styles.profileText}>
-                <Text style={styles.profileName}>Sophie Garnier</Text>
-                <Text style={styles.profileLocation}>Luxembourg</Text>
-              </View>
+      {/* Painted after (in front): the drawer surface, header included. */}
+      <View style={styles.drawer} testID="dashboard-menu-drawer">
+        <View style={styles.header}>
+          <View style={styles.profileRow}>
+            <Image
+              source={require('../../design/figma/assets/profile-image.png')}
+              style={styles.avatar}
+            />
+            <View style={styles.profileText}>
+              <Text style={styles.profileName}>Sophie Garnier</Text>
+              <Text style={styles.profileLocation}>Luxembourg</Text>
             </View>
           </View>
 
-          <View style={[styles.entries, { paddingBottom: spacing.space4 + insets.bottom }]}>
-            {entries.map(renderEntry)}
-            <View style={styles.spacer} />
-            {renderEntry(logoutEntry)}
-          </View>
+          <Pressable
+            testID="menu-back"
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            onPress={() => navigation.goBack()}
+            style={({ pressed }) => [
+              styles.backControl,
+              pressed ? styles.backControlPressed : null,
+            ]}
+          >
+            <Image
+              source={require('../../design/figma/assets/icon-13x13.png')}
+              style={styles.backIcon}
+            />
+          </Pressable>
         </View>
 
-        <View style={styles.backdrop} />
+        <View style={[styles.entries, { paddingBottom: spacing.space4 + insets.bottom }]}>
+          {entries.map(renderEntry)}
+          <View style={styles.spacer} />
+          {renderEntry(logoutEntry)}
+        </View>
       </View>
     </View>
   );
@@ -156,32 +162,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.panel,
   },
-  row: {
-    flex: 1,
-    flexDirection: 'row',
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   drawer: {
     width: DRAWER_WIDTH,
+    flex: 1,
     backgroundColor: colors.surface,
   },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
+  /*
+   * One flex row: the profile block (left, flexible) and the back control
+   * (right, fixed) are siblings. They sit side by side and cannot overlap, so
+   * the back control's hit area is never covered by the profile block.
+   */
   header: {
     height: 208,
     backgroundColor: colors.accent,
-    zIndex: zIndex.header,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingTop: 87,
+    paddingLeft: 23,
+    paddingRight: 21,
   },
   backControl: {
-    position: 'absolute',
-    top: 87,
-    right: 21,
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: zIndex.backControl,
   },
   backControlPressed: {
     opacity: 0.6,
@@ -192,10 +205,10 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   profileRow: {
-    marginTop: 87,
-    marginLeft: 23,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: spacing.space1,
   },
   avatar: {
     width: 75,
@@ -204,6 +217,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   profileText: {
+    flexShrink: 1,
     marginLeft: spacing.space1,
     justifyContent: 'center',
   },
