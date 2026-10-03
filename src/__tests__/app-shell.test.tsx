@@ -25,18 +25,26 @@ async function pressTab(testID: string) {
  * each screen ticket owns its own copy.
  */
 describe('app shell', () => {
-  it('renders exactly the three contract tabs, in the contract order', async () => {
+  it('renders the four frame items, in frame order', async () => {
     await renderShell();
 
     const tabs = screen.getAllByRole('tab');
     expect(tabs.map((tab) => tab.props.testID)).toEqual([
       'tab-Dashboard',
       'tab-MoneyManagement',
+      'tab-Liked-disabled',
       'tab-TimeManagement',
     ]);
   });
 
-  it('starts on the Dashboard screen with the Dashboard tab active', async () => {
+  it('shows the notch / reserved space at the top edge of the bar', async () => {
+    await renderShell();
+
+    expect(screen.getByTestId('tab-bar-notch')).toBeTruthy();
+    expect(screen.getByTestId('tab-bar-reserved-space')).toBeTruthy();
+  });
+
+  it('starts on the Dashboard screen with Home active and Liked disabled', async () => {
     await renderShell();
 
     expect(screen.getByTestId('screen-Dashboard')).toBeTruthy();
@@ -49,6 +57,22 @@ describe('app shell', () => {
     expect(
       screen.getByTestId('tab-TimeManagement').props.accessibilityState,
     ).toMatchObject({ selected: false });
+    expect(
+      screen.getByTestId('tab-Liked-disabled').props.accessibilityState,
+    ).toMatchObject({ selected: false, disabled: true });
+  });
+
+  it('does not navigate when the disabled Liked item is pressed', async () => {
+    await renderShell();
+
+    await pressTab('tab-Liked-disabled');
+
+    expect(screen.getByTestId('screen-Dashboard')).toBeTruthy();
+    expect(screen.queryByTestId('screen-MoneyManagement')).toBeNull();
+    expect(screen.queryByTestId('screen-TimeManagement')).toBeNull();
+    expect(screen.getByTestId('tab-Dashboard').props.accessibilityState).toMatchObject({
+      selected: true,
+    });
   });
 
   it('switches to each tab, reaches its screen and marks it active', async () => {

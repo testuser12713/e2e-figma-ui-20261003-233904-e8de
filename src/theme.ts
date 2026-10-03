@@ -199,6 +199,43 @@ export const typography = {
   },
 } satisfies Record<string, TextStyle>;
 
+/**
+ * Bottom tab bar tokens, read from the frames' Navbar group (413×77 at y=819).
+ * The bar carries four items whose labels map onto the three screens plus the
+ * disabled "Liked" placeholder, and a centred notch/reserved space at the top
+ * edge where the screens' FloatingAddButton sits.
+ */
+export const tabBar = {
+  height: 77,
+  itemWidth: 44,
+  itemGap: 12,
+  sidePadding: 24,
+  iconRowTop: 17,
+  iconBoxHeight: 21,
+  iconLabelGap: 5,
+  minTouchTarget: 44,
+  disabledOpacity: 0.45,
+  shadowColor: '#607193',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.16,
+  shadowRadius: 20,
+  elevation: 12,
+  notchWidth: 76,
+  notchHeight: 38,
+  notchRadius: 38,
+  label: {
+    fontFamily: fontFamilies.aleo,
+    fontSize: 7,
+    lineHeight: 5,
+  } satisfies TextStyle,
+  iconSizes: {
+    Dashboard: 22,
+    MoneyManagement: 19,
+    Liked: 20,
+    TimeManagement: 15,
+  },
+} as const;
+
 export const theme = {
   colors,
   spacing,
@@ -206,6 +243,7 @@ export const theme = {
   zIndex,
   fontFamilies,
   typography,
+  tabBar,
 } as const;
 
 export type Theme = typeof theme;
