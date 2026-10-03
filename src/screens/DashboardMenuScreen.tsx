@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography } from '../theme';
+import { colors, spacing, typography, zIndex } from '../theme';
 
 export type DashboardMenuScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -102,10 +102,10 @@ export function DashboardMenuScreen({ navigation }: DashboardMenuScreenProps) {
   );
 
   return (
-    <View style={styles.screen} testID="screen-DashboardMenu">
-      <View style={styles.row}>
+    <View style={styles.screen} testID="screen-DashboardMenu" pointerEvents="box-none">
+      <View style={styles.row} pointerEvents="box-none">
         <View style={styles.drawer} testID="dashboard-menu-drawer">
-          <View style={styles.header}>
+          <View style={styles.header} pointerEvents="box-none">
             <Pressable
               testID="menu-back"
               accessibilityRole="button"
@@ -122,7 +122,7 @@ export function DashboardMenuScreen({ navigation }: DashboardMenuScreenProps) {
               />
             </Pressable>
 
-            <View style={styles.profileRow}>
+            <View style={styles.profileRow} pointerEvents="box-none">
               <Image
                 source={require('../../design/figma/assets/profile-image.png')}
                 style={styles.avatar}
@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
   header: {
     height: 208,
     backgroundColor: colors.accent,
+    zIndex: zIndex.header,
   },
   backControl: {
     position: 'absolute',
@@ -180,6 +181,7 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: zIndex.backControl,
   },
   backControlPressed: {
     opacity: 0.6,

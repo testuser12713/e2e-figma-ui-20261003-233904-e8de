@@ -61,6 +61,16 @@ export const radii = {
 } as const;
 
 /**
+ * Stacking order for elements that float above a screen's own layout.
+ * The Dashboard Menu's back control overlaps the profile row, so it needs an
+ * explicit stacking value instead of relying on DOM/paint order.
+ */
+export const zIndex = {
+  header: 1,
+  backControl: 2,
+} as const;
+
+/**
  * The font family names loaded at the app root with `useFonts`.
  * Use these names in every `fontFamily` style.
  */
@@ -193,6 +203,7 @@ export const theme = {
   colors,
   spacing,
   radii,
+  zIndex,
   fontFamilies,
   typography,
 } as const;
