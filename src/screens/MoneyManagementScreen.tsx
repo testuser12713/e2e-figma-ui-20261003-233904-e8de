@@ -205,20 +205,19 @@ export function MoneyManagementScreen({ navigation }: MoneyManagementScreenProps
                   {category.family === 'material' ? (
                     <MaterialCommunityIcons
                       name={category.icon as keyof typeof MaterialCommunityIcons.glyphMap}
-                      size={28}
+                      size={36}
                       color={colors.black}
                     />
                   ) : (
                     <Feather
                       name={category.icon as keyof typeof Feather.glyphMap}
-                      size={28}
+                      size={36}
                       color={colors.black}
                     />
                   )}
                 </Pressable>
               ))}
             </View>
-            <Text style={styles.quickHint}>Coming soon</Text>
           </View>
 
           <View style={styles.report} testID="weekly-report">
@@ -553,11 +552,11 @@ const styles = StyleSheet.create({
   quickCard: {
     alignSelf: 'center',
     width: 330,
+    height: 276,
     marginTop: spacing.space4,
     borderRadius: radii['3xl'],
     backgroundColor: colors.surface,
-    paddingTop: spacing.space4,
-    paddingBottom: spacing.space3,
+    paddingTop: 34,
     paddingHorizontal: spacing.space5,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 3 },
@@ -571,15 +570,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   quickGrid: {
-    marginTop: spacing.space4,
+    width: 269,
+    marginTop: 28,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: spacing.space5,
+    columnGap: 52,
+    rowGap: 37,
   },
   quickTile: {
     width: 55,
     height: 55,
+    flexGrow: 0,
+    flexShrink: 0,
     borderRadius: radii.xl,
     borderWidth: 1,
     borderStyle: 'dashed',
@@ -587,13 +589,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    opacity: 0.5,
-  },
-  quickHint: {
-    ...typography.text9,
-    color: colors.muted2,
-    textAlign: 'center',
-    marginTop: spacing.space2,
   },
   report: {
     alignSelf: 'center',

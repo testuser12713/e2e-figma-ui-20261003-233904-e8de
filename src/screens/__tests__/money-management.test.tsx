@@ -34,6 +34,15 @@ describe('MoneyManagementScreen', () => {
     expect(screen.getByText('Online Course')).toBeTruthy();
   });
 
+  it('renders the six quick category tiles of the 3x2 grid', async () => {
+    await renderScreen();
+
+    for (let index = 0; index < 6; index += 1) {
+      expect(screen.getByTestId(`quick-category-${index}`)).toBeTruthy();
+    }
+    expect(screen.queryByTestId('quick-category-6')).toBeNull();
+  });
+
   it('filters to income and shows a sum that matches the visible rows', async () => {
     await renderScreen();
 
