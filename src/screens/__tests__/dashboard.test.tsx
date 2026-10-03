@@ -60,6 +60,23 @@ describe('Dashboard screen', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it('renders both coming-soon captions in the shared text-9 uppercase grey style', async () => {
+    await renderDashboard();
+
+    const captions = screen.getAllByText('COMING SOON');
+    expect(captions).toHaveLength(2);
+    for (const caption of captions) {
+      expect(caption).toHaveStyle({
+        fontSize: 9,
+        lineHeight: 11,
+        letterSpacing: 1.8,
+        textTransform: 'uppercase',
+        color: '#A5A5A5',
+        textAlign: 'center',
+      });
+    }
+  });
+
   it('switches to a built screen when its tile is pressed', async () => {
     const { navigate } = await renderDashboard();
 
