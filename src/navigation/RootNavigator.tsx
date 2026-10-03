@@ -17,7 +17,7 @@ import { DashboardMenuScreen } from '../screens/DashboardMenuScreen';
 import { DashboardStatsScreen } from '../screens/DashboardStatsScreen';
 import { MoneyManagementScreen } from '../screens/MoneyManagementScreen';
 import { TimeManagementScreen } from '../screens/TimeManagementScreen';
-import { colors, fontFamilies } from '../theme';
+import { colors, tabBar } from '../theme';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const MainTabs = createBottomTabNavigator<MainTabParamList>();
@@ -26,38 +26,53 @@ const MainTabs = createBottomTabNavigator<MainTabParamList>();
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 type TabItem = {
-  /** Stable test id suffix, also used to reach a screen. */
+  /** Token key, also the icon-size key in the theme. */
   key: string;
+  /** Stable test id, used by the shell test and the QA specs. */
+  testID: string;
+  /** The frames' own label, kept verbatim. */
   label: string;
-  route: keyof MainTabParamList;
-  renderIcon: (color: string) => React.ReactNode;
+  /** Navigable items carry the route they reach; the disabled one has none. */
+  route?: keyof MainTabParamList;
+  disabled?: boolean;
+  iconName: React.ComponentProps<typeof Ionicons>['name'];
 };
 
 /**
- * The bottom bar connects exactly the three screens of this sprint, in the
- * order the shared contract defines: Dashboard, Money Management, Time
- * Management. There is no fourth entry - every item here has a screen behind
- * it. Content without a screen is marked "coming soon" inside a screen, never
- * added as an extra tab.
+ * The bottom bar reproduces the four-item frame: Home → Dashboard,
+ * Products → Money Management, Today → Time Management. "Liked" is the frame's
+ * fourth item - a disabled VISUAL placeholder with no screen and no navigation
+ * call (AC-09: visibly disabled rather than silently inert). A centred
+ * notch/reserved space at the top edge holds the screens' FloatingAddButton.
  */
 const TAB_ITEMS: TabItem[] = [
   {
     key: 'Dashboard',
-    label: 'Dashboard',
+    testID: 'tab-Dashboard',
+    label: 'Home',
     route: 'Dashboard',
-    renderIcon: (color) => <Ionicons name="home-outline" size={22} color={color} />,
+    iconName: 'home-outline',
   },
   {
     key: 'MoneyManagement',
-    label: 'Money Management',
+    testID: 'tab-MoneyManagement',
+    label: 'Products',
     route: 'MoneyManagement',
-    renderIcon: (color) => <Ionicons name="wallet-outline" size={22} color={color} />,
+    iconName: 'storefront-outline',
+  },
+  {
+    key: 'Liked',
+    testID: 'tab-Liked-disabled',
+    label: 'Liked',
+    disabled: true,
+    iconName: 'heart-outline',
   },
   {
     key: 'TimeManagement',
-    label: 'Time Management',
+    testID: 'tab-TimeManagement',
+    label: 'Today',
     route: 'TimeManagement',
-    renderIcon: (color) => <Ionicons name="calendar-outline" size={22} color={color} />,
+    iconName: 'person-outline',
   },
 ];
 
@@ -65,34 +80,47 @@ function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const activeRoute = state.routes[state.index]?.name;
 
+  const renderItem = (item: TabItem) => {
+    const route = item.route;
+    const active = route !== undefined && route === activeRoute;
+    const color = active ? colors.accent : colors.navInactive;
+    const iconSize = tabBar.iconSizes[item.key as keyof typeof tabBar.iconSizes];
+
+    return (
+      <Pressable
+        key={item.key}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: active, disabled: item.disabled === true }}
+        accessibilityLabel={item.label}
+        disabled={item.disabled}
+        onPress={route ? () => navigation.navigate(route) : undefined}
+        testID={item.testID}
+        style={styles.item}
+      >
+        <View style={[styles.itemContent, item.disabled && styles.itemDisabled]}>
+          <View style={styles.iconBox}>
+            <Ionicons name={item.iconName} size={iconSize} color={color} />
+          </View>
+          <Text style={[styles.label, { color }]} numberOfLines={1}>
+            {item.label}
+          </Text>
+        </View>
+      </Pressable>
+    );
+  };
+
   return (
     <View
       style={[styles.tabBar, { paddingBottom: insets.bottom }]}
       testID="bottom-tab-bar"
     >
       <View style={styles.itemsRow}>
-        {TAB_ITEMS.map((item) => {
-          const active = item.route === activeRoute;
-          const color = active ? colors.accent : colors.navInactive;
-
-          return (
-            <Pressable
-              key={item.key}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: active }}
-              accessibilityLabel={item.label}
-              onPress={() => navigation.navigate(item.route)}
-              testID={`tab-${item.key}`}
-              style={styles.item}
-            >
-              <View style={styles.iconBox}>{item.renderIcon(color)}</View>
-              <Text style={[styles.label, { color }]} numberOfLines={1}>
-                {item.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        <View style={styles.sideGroup}>{TAB_ITEMS.slice(0, 2).map(renderItem)}</View>
+        <View style={styles.reservedSpace} testID="tab-bar-reserved-space" />
+        <View style={styles.sideGroup}>{TAB_ITEMS.slice(2).map(renderItem)}</View>
       </View>
+
+      <View style={styles.notch} pointerEvents="none" testID="tab-bar-notch" />
     </View>
   );
 }
@@ -133,34 +161,55 @@ export default RootNavigator;
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: colors.surface,
-    shadowColor: '#607193',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
-    elevation: 12,
+    shadowColor: tabBar.shadowColor,
+    shadowOffset: tabBar.shadowOffset,
+    shadowOpacity: tabBar.shadowOpacity,
+    shadowRadius: tabBar.shadowRadius,
+    elevation: tabBar.elevation,
   },
   itemsRow: {
-    height: 77,
+    height: tabBar.height,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    alignItems: 'flex-start',
+    paddingTop: tabBar.iconRowTop,
+    paddingHorizontal: tabBar.sidePadding,
+  },
+  sideGroup: {
+    flexDirection: 'row',
+    gap: tabBar.itemGap,
+  },
+  reservedSpace: {
+    flex: 1,
   },
   item: {
-    flex: 1,
+    width: tabBar.itemWidth,
+    minHeight: tabBar.minTouchTarget,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    minHeight: 44,
+  },
+  itemContent: {
+    alignItems: 'center',
+    gap: tabBar.iconLabelGap,
+  },
+  itemDisabled: {
+    opacity: tabBar.disabledOpacity,
   },
   iconBox: {
-    height: 22,
+    height: tabBar.iconBoxHeight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    fontFamily: fontFamilies.aleo,
-    fontSize: 7,
-    lineHeight: 9,
+    ...tabBar.label,
+  },
+  notch: {
+    position: 'absolute',
+    top: 0,
+    left: '50%',
+    marginLeft: -tabBar.notchWidth / 2,
+    width: tabBar.notchWidth,
+    height: tabBar.notchHeight,
+    borderBottomLeftRadius: tabBar.notchRadius,
+    borderBottomRightRadius: tabBar.notchRadius,
+    backgroundColor: colors.bg,
   },
 });
